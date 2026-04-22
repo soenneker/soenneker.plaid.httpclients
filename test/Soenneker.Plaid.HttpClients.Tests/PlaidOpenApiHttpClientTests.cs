@@ -1,20 +1,19 @@
 using Soenneker.Plaid.HttpClients.Abstract;
-using Soenneker.Tests.FixturedUnit;
-using Xunit;
+using Soenneker.Tests.HostedUnit;
 
 namespace Soenneker.Plaid.HttpClients.Tests;
 
-[Collection("Collection")]
-public sealed class PlaidOpenApiHttpClientTests : FixturedUnitTest
+[ClassDataSource<Host>(Shared = SharedType.PerTestSession)]
+public sealed class PlaidOpenApiHttpClientTests : HostedUnitTest
 {
     private readonly IPlaidOpenApiHttpClient _httpclient;
 
-    public PlaidOpenApiHttpClientTests(Fixture fixture, ITestOutputHelper output) : base(fixture, output)
+    public PlaidOpenApiHttpClientTests(Host host) : base(host)
     {
         _httpclient = Resolve<IPlaidOpenApiHttpClient>(true);
     }
 
-    [Fact]
+    [Test]
     public void Default()
     {
 
