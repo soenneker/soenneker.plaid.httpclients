@@ -11,11 +11,11 @@ using Soenneker.Utils.HttpClientCache.Abstract;
 
 namespace Soenneker.Plaid.HttpClients;
 
-///<inheritdoc cref="IPlaidOpenApiHttpClient"/>
 public sealed class PlaidOpenApiHttpClient : IPlaidOpenApiHttpClient
 {
     private readonly IHttpClientCache _httpClientCache;
     private readonly IConfiguration _config;
+    private readonly string _cacheKey = $"{nameof(PlaidOpenApiHttpClient)}:{Guid.NewGuid():N}";
 
     private const string _prodBaseUrl = "https://production.plaid.com";
 
@@ -27,38 +27,30 @@ public sealed class PlaidOpenApiHttpClient : IPlaidOpenApiHttpClient
 
     public ValueTask<HttpClient> Get(CancellationToken cancellationToken = default)
     {
-        return _httpClientCache.Get(nameof(PlaidOpenApiHttpClient), (config: _config, baseUrl: _config["Plaid:ClientBaseUrl"] ?? _prodBaseUrl), static state =>
+        return _httpClientCache.Get(_cacheKey, (config: _config, baseUrl: _config["Plaid:ClientBaseUrl"] ?? _prodBaseUrl), static state =>
         {
-            var apiKey = state.config.GetValueStrict<string>("Plaid:ApiKey");
-            string authHeaderName = state.config["Plaid:AuthHeaderName"] ?? "Authorization";
-            string authHeaderValueTemplate = state.config["Plaid:AuthHeaderValueTemplate"] ?? "Bearer {token}";
-            string authHeaderValue = authHeaderValueTemplate.Replace("{token}", apiKey, StringComparison.Ordinal);
+            var clientId = state.config.GetValueStrict<string>("Plaid:ClientId");
+            string secret = state.config["Plaid:Secret"] ?? state.config.GetValueStrict<string>("Plaid:ApiKey");
 
             return new HttpClientOptions
             {
                 BaseAddress = new Uri(state.baseUrl),
                 DefaultRequestHeaders = new Dictionary<string, string>
                 {
-                    {authHeaderName, authHeaderValue},
+                    {"PLAID-CLIENT-ID", clientId},
+                    {"PLAID-SECRET", secret},
                 }
             };
         }, cancellationToken);
     }
 
-    /// <summary>
-    /// Releases resources used by the current instance.
-    /// </summary>
     public void Dispose()
     {
-        _httpClientCache.RemoveSync(nameof(PlaidOpenApiHttpClient));
+        _httpClientCache.RemoveSync(_cacheKey);
     }
 
-    /// <summary>
-    /// Asynchronously releases resources used by the current instance.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation.</returns>
     public ValueTask DisposeAsync()
     {
-        return _httpClientCache.Remove(nameof(PlaidOpenApiHttpClient));
+        return _httpClientCache.Remove(_cacheKey);
     }
 }
