@@ -11,6 +11,7 @@ using Soenneker.Utils.HttpClientCache.Abstract;
 
 namespace Soenneker.Plaid.HttpClients;
 
+/// <inheritdoc cref="IPlaidOpenApiHttpClient" />
 public sealed class PlaidOpenApiHttpClient : IPlaidOpenApiHttpClient
 {
     private readonly IHttpClientCache _httpClientCache;
