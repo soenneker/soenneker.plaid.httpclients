@@ -30,8 +30,8 @@ public sealed class PlaidOpenApiHttpClient : IPlaidOpenApiHttpClient
     {
         return _httpClientCache.Get(_cacheKey, (config: _config, baseUrl: _config["Plaid:ClientBaseUrl"] ?? _prodBaseUrl), static state =>
         {
-            var clientId = state.config.GetValueStrict<string>("Plaid:ClientId");
-            string secret = state.config["Plaid:Secret"] ?? state.config.GetValueStrict<string>("Plaid:ApiKey");
+            var clientId = state.config.GetStringStrict("Plaid:ClientId");
+            string secret = state.config["Plaid:Secret"] ?? state.config.GetStringStrict("Plaid:ApiKey");
 
             return new HttpClientOptions
             {
